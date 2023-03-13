@@ -21,6 +21,7 @@ library(readxl)
 library(readr)
 
 
+
 # *** Carga dos Dados ***
 
 # Carregando os dados da Netflix
@@ -50,6 +51,7 @@ View(dados_sub)
 # Carregando os dados de códigos ISO dos países
 countrycode <- read.csv("datasets_originais/wikipedia-iso-country-codes.csv")
 View(countrycode)
+
 
 
 
