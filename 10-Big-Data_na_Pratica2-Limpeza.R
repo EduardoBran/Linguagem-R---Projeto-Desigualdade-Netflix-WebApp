@@ -134,4 +134,13 @@ View(dados_salario2)
 dados_netflix_pib_salario2020 <- merge(dados_netflix_pib2020, dados_salario2, by.x = c('Country'), by.y = c('country'))
 View(dados_netflix_pib_salario2020)
 
+
+# Limpa o dataset de faturamento e subscrição (deleta as colunas indicadas)
+dados_sub2 <- dados_sub[, c(1, 23, 24)]
+View(dados_sub2)
+
+# Com a função merge() combina os conjuntos de dados 'dados_netflix_pib_salario2020' e 'dados_sub2' com base na coluna Country.
+complete <- merge(dados_netflix_pib_salario2020, dados_sub2, by = c('Country'))
+View(complete)
+
 #
