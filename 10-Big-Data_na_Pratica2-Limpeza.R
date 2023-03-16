@@ -3,7 +3,6 @@
 # Como o Pib e a Desigualdade Social influenciam no crescimento da NetFlix
 
 
-
 # Configurando Diretório de Trabalho
 setwd("C:/Users/Julia/Desktop/CienciaDeDados/1.Big-Data-Analytics-com-R-e-Microsoft-Azure-Machine-Learning/4.Linguagem-R-Graficos/BigDataNaPratica_NetFlix")
 getwd()
@@ -96,7 +95,6 @@ names(dados_netflix_pib2020)[names(dados_netflix_pib2020) == 'V64'] <- '2020 GDP
 View(dados_netflix_pib2020)
 
 
-
 # Limpeza do dataframe de desigualdade salarial ( "%>%" simbolo para concatenar comandos )
 
 # remove todas as colunas a partir da quarta coluna em diante e mantém apenas as três primeiras colunas do conjunto de dados.
@@ -108,13 +106,14 @@ View(dados_salario)
 # Em seguida, o group_by(country) agrupa os dados de salário pelo nome do país.
 # O summarise(max = max(year, na.rm = TRUE)) resume os dados agrupados, calculando o máximo valor da variável year para cada
 # país e atribuindo o resultado a uma nova coluna chamada max. O argumento na.rm = TRUE é utilizado para remover valores
-# faltantes (NA) na coluna year, caso existam.
+# faltantes (NA) na coluna year, caso existam. O código criou um conjunto de dados que lista cada país e o ano mais recente disponível em que foram registrados dados de desigualdade salarial
+
 dados_salario_ano <- dados_salario %>% group_by(country) %>% summarise(max = max(year, na.rm = TRUE))
 
 View(dados_salario_ano)
 
 
-# Combina os dataframes
+# Combinando os dataframes
 
 # - Combinando os dois df dados_salario e dados_salario_ano usando o país usando a funcao merge().
 # - O argumento by.x especifica quais colunas da tabela dados_salario devem ser usadas como chave de junção. Nesse caso, as
@@ -124,11 +123,13 @@ View(dados_salario_ano)
 #   país e ano presente na tabela dados_salario, juntamente com o ano máximo presente na tabela dados_salario_ano.
 # - Caso haja países com anos diferentes entre as tabelas, os registros desses países serão descartados na junção. Já se
 #   houver anos diferentes para um mesmo país nas tabelas, os registros serão mantidos e apresentados na tabela final.
+# - O resultado final é um novo conjunto de dados chamado "dados_salario2", que inclui todas as colunas de 
+#   "dados_salario" e mais uma coluna "max", que contém o ano mais recente para cada país.
 
 dados_salario2 <- merge(dados_salario, dados_salario_ano, by.x = c('country', 'year'), by.y = c('country', 'max'))
 View(dados_salario2)
 
-# - Realiza um merge() entre dois data frames: dados_netflix_pib2020 e dados_salario2, baseado na coluna Country 
+# - Realiza um merge() entre dois data frames: dados_netflix_pib2020 e dados_salario2, baseado na colunas Country e country
 #   em dados_netflix_pib2020 e na coluna country em dados_salario2.
 
 dados_netflix_pib_salario2020 <- merge(dados_netflix_pib2020, dados_salario2, by.x = c('Country'), by.y = c('country'))
@@ -143,4 +144,28 @@ View(dados_sub2)
 complete <- merge(dados_netflix_pib_salario2020, dados_sub2, by = c('Country'))
 View(complete)
 
-#
+# Faz um merge do countrycode para o complete
+
+# Deletando colunas de countrycode
+countrycode2 <- countrycode[, c(1, 3)]
+View(countrycode2)
+
+# Realiza um merge() entre dois data frames: complete e countrycode2, baseado na colunas Country e English.short.name.lower.case
+# Adiciona a coluna com Codigo de Cada País
+complete <- merge(complete, countrycode2, by.x = c('Country'), by.y = c('English.short.name.lower.case'))
+View(complete)
+
+
+# Salva o dataframe
+write.csv(complete, 'datasets_limpos/dataset1.csv', row.names = FALSE)
+
+
+# Colunas do df acima
+
+# País | Código do País | Total Catálogo | Nº Shows | Nº Filmes | Custo Básico | Custo Standard | Custo Premium |
+
+# Diferença Valor Plano Básico - Standard  | Diferença Valor Plano Premium - Standard | PIB
+
+# Ano | Índice Desigualdade | Nº Assinantes 4 Trimestre 2021 | Faturamento do Período | Código do País 
+
+
