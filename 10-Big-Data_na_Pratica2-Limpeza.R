@@ -39,10 +39,6 @@ View(dados_salario)
 dados_IMDB <- read_tsv("datasets_originais/dados_IMDB.tsv")
 View(dados_IMDB)
 
-# Carregando os dados dos top 10 shows da NetFlix por país
-dados_top10 <- read_excel("datasets_originais/top_10_shows_netflix.xlsx")
-View(dados_top10)
-
 # Carregando dados de assinantes da Netflix em Julho/2021
 dados_sub <- read.csv("datasets_originais/assinantes_netflix_jul_2021.csv")
 View(dados_sub)
@@ -51,6 +47,10 @@ View(dados_sub)
 countrycode <- read.csv("datasets_originais/wikipedia-iso-country-codes.csv")
 View(countrycode)
 
+
+# Carregando os dados dos top 10 shows da NetFlix por país
+dados_top10 <- read_excel("datasets_originais/top_10_shows_netflix.xlsx")
+View(dados_top10)
 
 
 # *** Análise exploratória (não foi feita para esse exemplo) ***
@@ -68,6 +68,7 @@ dados_netflix$basic_standard_diff = (dados_netflix$Cost.Per.Month...Standard....
 dados_netflix$standard_premium_diff = (dados_netflix$Cost.Per.Month...Premium.... - dados_netflix$Cost.Per.Month...Standard....)
 
 View(dados_netflix)
+
 
 # Combina os dados anteriores com dados do PIB
 
@@ -88,7 +89,6 @@ View(dados_netflix_pib)
 # exclui todas as colunas de 11 a 72 e 74 e 75 de 'dados_netflix_pib' e cria um novo df. Essas colunas
 # correspondiam aos dados dos anos anteriores a 2020
 dados_netflix_pib2020 <- dados_netflix_pib[-c(11:72, 74, 75)]
-View(dados_netflix_pib2020)
 
 # renomeando o nome da coluna
 names(dados_netflix_pib2020)[names(dados_netflix_pib2020) == 'V64'] <- '2020 GDP (World Bank)'
@@ -156,9 +156,8 @@ complete <- merge(complete, countrycode2, by.x = c('Country'), by.y = c('English
 View(complete)
 
 
-# Salva o dataframe
+# Salvando o dataframe
 write.csv(complete, 'datasets_limpos/dataset1.csv', row.names = FALSE)
-
 
 # Colunas do df acima
 
@@ -167,5 +166,69 @@ write.csv(complete, 'datasets_limpos/dataset1.csv', row.names = FALSE)
 # Diferença Valor Plano Básico - Standard  | Diferença Valor Plano Premium - Standard | PIB
 
 # Ano | Índice Desigualdade | Nº Assinantes 4 Trimestre 2021 | Faturamento do Período | Código do País 
+
+
+
+
+# *** Limpeza e Preparação do Segundo Dataset Combinado ***
+
+
+# Limpa e filtra o dataframe IMDB
+# - antes da vírgula é linha, ta vazio então quero todas as linhas
+# - depois da virgula é coluna, eu quero tudo menos as colunas escolhidas (-c)
+
+genero <- dados_IMDB[, -c(1, 4:8)] # genero <- dados_IMDB[, c(2, 3, 9)]
+View(genero)
+
+# renomeando coluna
+names(genero)[names(genero) == 'primaryTitle'] <- 'show_title'
+View(genero)
+
+
+# associa o dados_top10 com df genero (cria um novo df com todas as colunas de dados_top10 e genero onde 'show_title' sao iguais)
+topgenero <- merge(dados_top10, genero, by = "show_title")
+View(topgenero)
+
+
+# Limpando o dataframe anterior para manter apenas 1 entrada para cada top 10
+
+
+# Em topgenero2 ficará apenas os filmes que atenderem a filtragem abaixo
+# - somente quando a coluna category for 'Filmes e a coluna titleType for 'movie'
+# - ou somente quando a coluna category for 'TV e a coluna titleType for 'tvSeries'
+
+topgenero2 <- topgenero[(topgenero$category == "Films" & topgenero$titleType == "movie") |
+                        (topgenero$category == "TV" & topgenero$titleType == "tvSeries"), ]
+View(topgenero2)
+
+# Em topgenero3 foi usada a funcao distinct() para remover as linhas duplicadas do dataframe topgenero2, mantendo apenas uma
+# ocorrência de cada combinação única de valores das colunas show_title, week, country_name, category, titleType e cumulative_weeks_in_top_10.
+# A função distinct do pacote dplyr é usada para remover as linhas duplicadas. O argumento .keep_all = TRUE é usado para manter
+# todas as colunas no dataframe após a remoção das linhas duplicadas.
+
+topgenero3 <- distinct(topgenero2, show_title, week, country_name, category, titleType, cumulative_weeks_in_top_10, .keep_all = TRUE)
+View(topgenero3)
+
+
+# Mantém apenas a informação de gênero de filmes por país
+
+topgeneropaises <- topgenero3[, -c(1, 3:9)]
+View(topgeneropaises)
+
+
+
+
+
+
+
+
+
+
+
+
+topgenero <- read_csv("datasets_limpos/topgenero.csv")
+
+write.csv(topgenero, 'datasets_limpos/topgenero.csv', row.names = FALSE)
+
 
 
