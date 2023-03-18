@@ -210,14 +210,60 @@ topgenero3 <- distinct(topgenero2, show_title, week, country_name, category, tit
 View(topgenero3)
 
 
-# Mantém apenas a informação de gênero de filmes por país
+# Mantém apenas a informação de gênero de filmes por país (removendo colunas)
 
 topgeneropaises <- topgenero3[, -c(1, 3:9)]
 View(topgeneropaises)
 
 
+# Pivot do dataframe 
+
+# Utilizando a função separate() do pacote tidyr para separar a coluna genres do data frame topgeneropaises em três 
+# colunas diferentes: genero1, genero2 e genero3. (antes tinhamos varios generos em apenas em 1 coluna)
+
+topgeneropaisesPiv <- separate(topgeneropaises, c('genres'), c('genero1', 'genero2', 'genero3'), sep = ',')
+View(topgeneropaisesPiv)
+
+# Usando a função pivot_longer() do pacote tidyr para converter as colunas genero1, genero2 e genero3 em uma única
+# coluna: genero123, e os valores dessas colunas foram colocados em uma nova coluna chamada genres. Isso foi feito para que
+# a análise dos dados seja mais fácil, já que antes os gêneros estavam distribuídos em três colunas diferentes.
+
+topgeneropaisesPivot <- pivot_longer(topgeneropaisesPiv, c('genero1', 'genero2', 'genero3'),
+                                     names_to = 'genero123', values_to = 'genres')
+View(topgeneropaisesPivot)
+
+# colocando em ordem alfabética de acordo com o nome dos países (coluna country_name)
+
+topgeneropaisesPivot_ord <- topgeneropaisesPivot %>% 
+  arrange(country_name)
+View(topgeneropaisesPivot_ord)
 
 
+# Conta o número de gêneros
+
+# contou o número de ocorrências de cada gênero para cada país criando um novo dataframe chamado generoCount que possui três
+# colunas: country_name (nome do país), genres (gênero do filme ou série) e n (número de ocorrências do gênero para o país).
+generoCount <- count(topgeneropaisesPivot, country_name, genres)
+View(generoCount)
+
+# remove todas as linhas que contêm valores ausentes (NA) do dataframe 
+generoCount <- na.omit(generoCount)
+View(generoCount)
+
+# removeu todas as linhas em que o valor da coluna "genres" é igual a "\N" (para indicar uma única barra invertida na expressão, é necessário usá-la duas vezes)
+generoCount <- subset(generoCount, genres!="\\N")
+View(generoCount)
+
+# converte a coluna "n" do data frame "generoCount" para o tipo numérico (numeric)
+generoCount$n <- as.numeric(generoCount$n)
+View(generoCount)
+
+
+# Salva em disco (row.names FALSE é usado para que a primeira coluna do arquivo CSV gerado não contenha os nomes das linhas do dataframe, apenas os dados. Isso é útil quando se deseja importar os dados para outra ferramenta ou linguagem, sem precisar remover a primeira coluna manualmente.)
+write.csv(generoCount, "datasets_limpos/dataset2.csv", row.names = FALSE)
+
+
+#
 
 
 
