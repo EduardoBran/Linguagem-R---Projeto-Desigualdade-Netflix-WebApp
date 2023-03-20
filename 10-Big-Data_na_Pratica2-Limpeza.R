@@ -58,7 +58,8 @@ View(dados_top10)
 
 
 
-# *** Limpeza e Preparação do Primeiro Dataset Combinado ***
+
+# *************** Limpeza e Preparação do Primeiro Dataset Combinado ***************
 
 
 # Cria uma coluna com a diferença de dados do para o gráfico de barras (plano standard - plano basico)
@@ -159,6 +160,9 @@ View(complete)
 # Salvando o dataframe
 write.csv(complete, 'datasets_limpos/dataset1.csv', row.names = FALSE)
 
+# carregando o dataframe
+complete <- read_csv("datasets_limpos/dataset1.csv")
+
 # Colunas do df acima
 
 # País | Código do País | Total Catálogo | Nº Shows | Nº Filmes | Custo Básico | Custo Standard | Custo Premium |
@@ -170,7 +174,8 @@ write.csv(complete, 'datasets_limpos/dataset1.csv', row.names = FALSE)
 
 
 
-# *** Limpeza e Preparação do Segundo Dataset Combinado ***
+
+# *************** Limpeza e Preparação do Segundo Dataset Combinado ***************
 
 
 # Limpa e filtra o dataframe IMDB
@@ -264,7 +269,9 @@ write.csv(generoCount, "datasets_limpos/dataset2.csv", row.names = FALSE)
 
 
 
-# *** Limpeza e Preparação do Terceiro Dataset Combinado ***
+
+
+# *************** Limpeza e Preparação do Terceiro Dataset Combinado ***************
 
 
 # Renomeia a coluna 'country_name' do dataframe generoCount para 'label'
@@ -336,9 +343,77 @@ sunburstFinal2 <- sunburstFinal2[, -c(3)]
 # convertendo para numerico
 sunburstFinal2$n <- as.numeric(sunburstFinal2$n)
 
+View(sunburstFinal2)
 
 # salvando em disco
 write.csv(sunburstFinal2, "datasets_limpos/dataset3.csv", row.names = FALSE)
+
+
+
+
+
+# *************** Limpeza e Preparação do Quarto Dataset Combinado ***************
+
+
+# Vamos trabalhar com top 10 para evitar problemas de performance nos gráficos (exibir somente top 10)
+
+# apaga as primeiras 27 linhas e mantem todas as colunas
+top10sunburst <- sunburstFinal2[-c(1:28),]
+
+# transforma coluna em numerico
+top10sunburst$n <- as.numeric(top10sunburst$n)
+
+View(top10sunburst)
+
+
+# Top 10 gêneros por país
+
+# A função group_by é utilizada para agrupar as linhas do objeto top10sunburst pela coluna "label". Isso significa que todas
+# as linhas com a mesma categoria em "label" serão agrupadas juntas para as próximas operações;
+# A função top_n é utilizada para selecionar as top 10 linhas com o maior valor na coluna "n" para cada grupo definido pela
+# coluna "label". Ou seja, para cada categoria em "label", serão selecionadas as 10 linhas com os maiores valores em "n".
+
+top10sunburst2 <- top10sunburst %>% 
+  group_by(label) %>% 
+  top_n(10, n)
+
+View(top10sunburst2)
+
+
+# Recalcula os totais, ajusta e combina o dataframe
+
+# agregacao para gerar um novo df chamado "top10add", contendo a soma dos valores de "n" para cada 'parent'.
+top10add <- aggregate(top10sunburst2$n, list(top10sunburst2$parent), FUN = sum)
+View(top10add)
+
+# renomeando colunas
+top10add <- rename(top10add, id = Group.1)
+top10add <- rename(top10add, n = x)
+
+# cria uma nova coluna no data frame top10add chamada label, onde os valores dessa coluna são os mesmos da coluna id, mas
+# com a string "total - " removida.
+top10add$label = sub("total - ", "", top10add$id)
+
+# cria uma nova coluna chamada 'parten' onde todas as linhas tem escrito 'total'
+top10add$parent = c('total')
+
+# converte a coluna "n" do data frame "generoCount" para o tipo numérico (numeric)
+top10add$n <- as.numeric(top10add$n)
+
+total = sum(top10add$n)
+total
+
+# adiciono ao df top10sunburst2 todas as 16 linhas de top10add (as colunas possuem o mesmo nome)
+top10sunburst2 <- rbind(top10add, top10sunburst2)
+View(top10sunburst2)
+
+# adiciona uma nova linha onde cada informacao dentro do vetor vai para uma coluna
+top10sunburst2 <- rbind(c("total", total, NA, NA), top10sunburst2)
+View(top10sunburst2)
+
+
+# salva em disco
+write.csv(top10sunburst2, "datasets_limpos/dataset4.csv", row.names = FALSE)
 
 
 
