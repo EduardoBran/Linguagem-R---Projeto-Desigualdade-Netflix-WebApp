@@ -418,6 +418,35 @@ write.csv(top10sunburst2, "datasets_limpos/dataset4.csv", row.names = FALSE)
 
 
 
+# *************** Limpeza e Preparação do Quinto Dataset Combinado ***************
+
+
+# Filtra o dataframe anterior e cria um novo
+
+# Elimina a primeira linha
+nototal <- sunburstFinal2[-c(1),]
+View(nototal)
+
+# edita a coluna 'parent' onde os valores dessa coluna são os mesmos da coluna 'parent', mas com a string "total - " removida.
+nototal$parent = sub('total - ', '', nototal$parent)
+
+# edita a coluna 'parent' onde os valores dessa coluna são os mesmos da coluna 'parent', mas onde tinha apenas 'total' ficar NA
+nototal$parent = sub('total', NA, nototal$parent)
+
+# edita a coluna id onde os valores dessa coluna são os mesmos da coluna 'id', mas mas com a string "total  -  " removida.
+nototal$id = sub('total  -  ', '', nototal$id)
+
+View(nototal)
+
+
+# salva em disco
+write.csv(top10sunburst2, "datasets_limpos/dataset5.csv", row.names = FALSE)
+
+
+
+
+
+
 
 
 
