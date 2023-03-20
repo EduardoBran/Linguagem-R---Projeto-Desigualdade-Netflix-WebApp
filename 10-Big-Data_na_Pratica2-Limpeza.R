@@ -272,6 +272,7 @@ write.csv(generoCount, "datasets_limpos/dataset2.csv", row.names = FALSE)
 
 
 
+
 topgenero <- read_csv("datasets_limpos/topgenero.csv")
 
 write.csv(topgenero, 'datasets_limpos/topgenero.csv', row.names = FALSE)
