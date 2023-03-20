@@ -263,9 +263,82 @@ View(generoCount)
 write.csv(generoCount, "datasets_limpos/dataset2.csv", row.names = FALSE)
 
 
-#
+
+# *** Limpeza e Preparação do Terceiro Dataset Combinado ***
 
 
+# Renomeia a coluna 'country_name' do dataframe generoCount para 'label'
+sunburst <- rename(generoCount, label = country_name)
+View(sunburst)
+
+# Remove os traços
+sunburst$genres = sub("-", " ", sunburst$genres)
+View(sunburst)
+
+# Cria uma coluna nova chamada 'parent' e depois adiciona conteúdo nela
+sunburst$parent = c("total - ")
+sunburst$parent <- paste(sunburst$parent, sunburst$genres) 
+
+# Cria uma coluna nova chamada 'id' e depois adiciona conteúdo nela
+sunburst$id = c(' - ')
+sunburst$id <- paste(sunburst$parent, sunburst$id)
+sunburst$id <- paste(sunburst$id, sunburst$label)
+
+# converte a coluna "n" do data frame "generoCount" para o tipo numérico (numeric)
+sunburst$n <- as.numeric(sunburst$n)
+
+View(sunburst)
+
+
+# Agregação
+
+# Utilizando a função "aggregate", que recebe como argumentos: a coluna "n" que se deseja agregar, a lista com as variáveis
+# usadas para agrupar (neste caso, "genres") e a função "sum" que será aplicada para agregar os valores da coluna "n" por
+# grupo. O resultado é um novo data frame chamado "added", contendo a soma dos valores de "n" para cada gênero.
+
+added <- aggregate(sunburst$n, list(sunburst$genres), FUN=sum)
+View(added)
+
+# renomeando colunas
+added <- rename(added, label = Group.1)
+added <- rename(added, n = x)
+
+# converte a coluna "n" do data frame "generoCount" para o tipo numérico (numeric)
+added$n <- as.numeric(added$n)
+
+# criando novas colunas ('genres', 'parent', 'id')
+added$genres <- c(NA)
+added$parent <- c('total')
+added$id <- c(' - ')
+
+# adicionando conteudo para a coluna 'id'
+added$id <- paste(added$parent, added$id)
+added$id <- paste(added$id, added$label)
+
+View(added)
+
+# Calcula a soma da coluna 'n'
+total = sum(added$n)
+
+
+# Combina tudo para o dataframe final
+
+# uniu (concatenou) as duas tabelas added e sunburst em uma nova tabela chamada sunburstFinal. A função rbind() foi usada para
+# concatenar as tabelas pela sequência das linhas, ou seja, as linhas da tabela added foram adicionadas ao final da tabela sunburst.
+sunburstFinal <- rbind(added, sunburst)
+
+# adicionou uma nova linha no inicio com as informacoes para cada coluna dentro do rbind()
+sunburstFinal2 <- rbind(c("total", total, NA, NA, "total"), sunburstFinal)
+
+# excluindo coluna
+sunburstFinal2 <- sunburstFinal2[, -c(3)]
+
+# convertendo para numerico
+sunburstFinal2$n <- as.numeric(sunburstFinal2$n)
+
+
+# salvando em disco
+write.csv(sunburstFinal2, "datasets_limpos/dataset3.csv", row.names = FALSE)
 
 
 
@@ -274,8 +347,3 @@ write.csv(generoCount, "datasets_limpos/dataset2.csv", row.names = FALSE)
 
 
 topgenero <- read_csv("datasets_limpos/topgenero.csv")
-
-write.csv(topgenero, 'datasets_limpos/topgenero.csv', row.names = FALSE)
-
-
-
