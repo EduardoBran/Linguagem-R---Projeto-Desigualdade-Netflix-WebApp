@@ -446,6 +446,69 @@ write.csv(top10sunburst2, "datasets_limpos/dataset5.csv", row.names = FALSE)
 
 
 
+# *************** Limpeza e Preparação do Sexto Dataset Combinado ***************
+
+
+# Filtra o dataframe anterior e cria um novo (este será útil para o grafico com mapa)
+
+# eliminou as primeiras 28 linhas
+countrytree <- nototal[-c(1:28),]
+View(countrytree)
+
+# renomeando coluna 'label' para se chamar 'parents'
+countrytree <- rename(countrytree, parents = label)
+
+# renomeando coluna 'parent' para se chamar 'labels'
+countrytree <- rename(countrytree, labels = parent)
+
+# edita o conteudo da coluna 'id' para ' - '
+countrytree$id = c(' - ')
+
+# edita o conteudo da coluna 'id'
+countrytree$id <- paste(countrytree$parents, countrytree$id)
+countrytree$id <- paste(countrytree$id, countrytree$labels)
+
+View(countrytree)
+
+# agregacao para gerar um novo df chamado "countries", contendo a soma dos valores de "n" para cada 'parents'.
+countries <- aggregate(countrytree$n, list(countrytree$parents), FUN = sum)
+View(countries)
+
+# renomeando colunas
+countries <- rename(countries, labels = Group.1)
+countries <- rename(countries, n = x)
+
+# convertendo para numerico
+countries$n <- as.numeric(countries$n)
+
+# cria uma nova coluna 'id' recebendo todos os dados da coluna 'labels'
+countries$id <- countries$labels
+
+# cria uma nova coluna 'parents' recebendo todos os dados NA
+countries$parents <- c(NA)
+
+
+countrytreeFinal <- rbind(countrytree, countries)
+View(countrytreeFinal)
+
+
+# salva em disco
+write.csv(countrytreeFinal, "datasets_limpos/dataset6.csv", row.names = FALSE)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
