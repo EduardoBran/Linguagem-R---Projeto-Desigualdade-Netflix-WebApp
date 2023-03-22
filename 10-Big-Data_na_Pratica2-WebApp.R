@@ -72,3 +72,45 @@ country_list <- filter(countries, is.na(parents))
 View(country_list)
 
 
+
+
+############# UI - User Interface #############
+
+ui <- 
+  navbarPage(
+    theme = shinytheme("cerulean"),
+    "Big Data na Prática2",
+    
+    tabPanel(
+      "Visão Geral",
+      
+      sidebarLayout(
+        
+        sidebarPanel(
+          
+          selectInput(
+            "select",
+            label = h4("Selecione a Variável do Eixo Y:"),
+            choices = list("Faturamento da Netflix Q4-2021" = "Q4.2021.Revenue....Estimate.",
+                           "Assinaturas da Netflix Q4-2021" = "X..of.Subscribers.Q4.2021..Estimate.",
+                           "Tamanho Total do Catálogo" = "Total.Library.Size",
+                           "Preço da Assinatura Basic" = "Cost.Per.Month...Basic....",
+                           "Preço da Assinatura Standard" = "Cost.Per.Month...Standard....",
+                           "Preço da Assinatura Premium" = "Cost.Per.Month...Premium...."),
+            selected = 1
+            
+          ), # end selectInput
+          
+          checkboxInput("outlierscatter", "Mostrar Outlier", FALSE)
+          
+        ), # end sidebarLayout
+        
+        mainPanel(plotOutput("scatPlot"))
+        
+      ) # end sidebarLayout
+    ) # end tabPanel
+  ) # end navbarPage
+
+
+print(ui)                 
+                 
