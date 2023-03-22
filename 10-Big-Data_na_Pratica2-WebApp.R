@@ -73,6 +73,8 @@ View(country_list)
 
 
 
+# https://rstudio.github.io/shinythemes - outros temas
+
 
 ############# UI - User Interface #############
 
@@ -103,14 +105,96 @@ ui <-
           
           checkboxInput("outlierscatter", "Mostrar Outlier", FALSE)
           
-        ), # end sidebarLayout
+        ), # end sidebarPanel
         
         mainPanel(plotOutput("scatPlot"))
         
       ) # end sidebarLayout
+      
+    ), # end tabPanel
+    
+    tabPanel(
+      "Desigualdade Salarial",
+      h4("Disparidade de Renda e Diferenças nos Preços da Assinatura Basic, Standard e Premium da Netflix (Mensal"),
+      
+      sidebarPanel(
+        checkboxInput("outlierbar", "Mostrar Outlier", FALSE)
+      
+      ), # end sidebarPanel
+      
+      mainPanel(
+        plotlyOutput("barplot")
+        
+      ) # end mainPanel
+    
+    ), # end tabPanel
+    
+    tabPanel(
+      "Gêneros Populares",
+      
+      tabPanel(
+        "Country",
+        
+        sidebarLayout(
+          
+          sidebarPanel(
+            
+            selectInput(
+              "Country",
+              label = h3("Selecione o País:"),
+              choices = country_list$labels,
+              selected = 1
+              
+            ) # end selecInput
+            
+          ), # end sidebarPanel
+          
+          mainPanel(
+            h3("Popularidade de Gênero dos Filmes Por País"),
+            h5("Com base no número de vezes que um filme/programa de TV de um determinado gênero esteve no Top 10 semanal da Netflix em um país (Dados de Junho 2021 - Março 2022)."),
+            plotlyOutput("countryPlot")
+            
+          ) # end mainPanel
+          
+        ) # end sidebarLayout
+        
+      ) # end tabPanel
+      
+    ), # end tabPanel
+    
+    tabPanel(
+      "Assinantes Netflix",
+      
+      sidebarLayout(
+        
+        sidebarPanel(
+          
+          selectInput(
+            "select3",
+            label = h3("Selecione a Escala:"),
+            choices = list("Faturamento Netflix Q4-2021" = "Q4.2021.Revenue....Estimate",
+                           "Assinaturas Netflix Q4-2021" = "X..of.Subscribers.Q4.2021..Estimate."),
+            selected = 1
+            
+          ), # end selectInput
+          
+          checkboxInput("outliermap", "Mostrar Outlier", FALSE)
+          
+        ), # end sidebarPanel
+        
+        mainPanel(
+          plotlyOutput("mapPlot"),
+          h3("Faturamento x Assinaturas"),
+          plotlyOutput("mapscatPlot")
+          
+        ) # end mainPanel
+        
+      ) # end sidebarLayoyt
+      
     ) # end tabPanel
+    
   ) # end navbarPage
 
 
-print(ui)                 
+print(ui)
                  
