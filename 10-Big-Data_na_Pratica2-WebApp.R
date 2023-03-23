@@ -42,16 +42,16 @@ View(dataset1)
 # Cria dataframes filtrando os outliers
 
 # feito para criar um gráfico de dispersão (scatter plot) apenas com os países que não são os Estados Unidos.
-dataset_scat_out <- filter(dataset1, Country != "United States")
-View(dataset_scat_out)
+dataset1_scat_out <- filter(dataset1, Country != "United States")
+View(dataset_scat_out1)
 
 # feito para criar um gráfico de barras apenas com os países que não são a Suíça. (desigualdade social na suiça é muito baixa)
-dataset_bar <- filter(dataset1, Country != "Switzerland")
-View(dataset_bar)
+dataset1_bar <- filter(dataset1, Country != "Switzerland")
+View(dataset_bar1)
 
 # feito para criar um gráfico de barras apenas com os países que não são a África do Sul. (desigualdade social é muito alta)
-dataset_bar_out <- filter(dataset1, Country != "South Africa")
-View(dataset_bar_out)
+dataset1_bar_out <- filter(dataset1, Country != "South Africa")
+View(dataset_bar_out1)
 
 
 
@@ -76,7 +76,8 @@ View(country_list)
 # https://rstudio.github.io/shinythemes - outros temas
 
 
-############# UI - User Interface #############
+
+############################# UI - User Interface #############################
 
 ui <- 
   navbarPage(
@@ -93,11 +94,11 @@ ui <-
           selectInput(
             "select",
             label = h4("Selecione a Variável do Eixo Y:"),
-            choices = list("Faturamento da Netflix Q4-2021" = "Q4.2021.Revenue....Estimate.",
+            choices = list("Faturamento da Netflix Q4-2021" = "Q4.2021.Revenue....Estimate.", 
                            "Assinaturas da Netflix Q4-2021" = "X..of.Subscribers.Q4.2021..Estimate.",
-                           "Tamanho Total do Catálogo" = "Total.Library.Size",
-                           "Preço da Assinatura Basic" = "Cost.Per.Month...Basic....",
-                           "Preço da Assinatura Standard" = "Cost.Per.Month...Standard....",
+                           "Tamanho Total do Catálogo" = "Total.Library.Size", 
+                           "Preço da Assinatura Basic" = "Cost.Per.Month...Basic....", 
+                           "Preço da Assinatura Standard"= "Cost.Per.Month...Standard....",
                            "Preço da Assinatura Premium" = "Cost.Per.Month...Premium...."),
             selected = 1
             
@@ -107,7 +108,7 @@ ui <-
           
         ), # end sidebarPanel
         
-        mainPanel(plotOutput("scatPlot"))
+        mainPanel(plotlyOutput("scatPlot"))
         
       ) # end sidebarLayout
       
@@ -115,18 +116,18 @@ ui <-
     
     tabPanel(
       "Desigualdade Salarial",
-      h4("Disparidade de Renda e Diferenças nos Preços da Assinatura Basic, Standard e Premium da Netflix (Mensal"),
+      h4("Disparidade de Renda e Diferenças nos Preços da Assinatura Basic, Standard e Premium da Netflix (Mensal)"),
       
       sidebarPanel(
         checkboxInput("outlierbar", "Mostrar Outlier", FALSE)
       
-      ), # end sidebarPanel
+      ),# end sidebarPanel
       
       mainPanel(
-        plotlyOutput("barplot")
-        
+        plotlyOutput("barPlot")
+      
       ) # end mainPanel
-    
+      
     ), # end tabPanel
     
     tabPanel(
@@ -172,7 +173,7 @@ ui <-
           selectInput(
             "select3",
             label = h3("Selecione a Escala:"),
-            choices = list("Faturamento Netflix Q4-2021" = "Q4.2021.Revenue....Estimate",
+            choices = list("Faturamento Netflix Q4-2021" = "Q4.2021.Revenue....Estimate.",
                            "Assinaturas Netflix Q4-2021" = "X..of.Subscribers.Q4.2021..Estimate."),
             selected = 1
             
@@ -196,5 +197,178 @@ ui <-
   ) # end navbarPage
 
 
-print(ui)
+
+
+############################# Server - Lógica do Servidor #############################
+
+
+server <- 
+  
+  function(input, output) {
+    
+    #Scatter Plot
+    output$scatPlot <- 
+      
+      renderPlotly({
+        
+        if(input$outlierscatter){
+          dfs <- dataset1
+        }
+        else{
+          dfs <- dataset1_scat_out
+        }
+        
+        fig <- plot_ly(data = dfs, x = ~X2020.GDP..World.Bank., y = ~get(input$select),
+                       type = "scatter", mode = "markers", text = ~Country)
+        
+        fig <- fig %>% layout(yaxis = list(title = 'Variável Selecionada'), xaxis = list(title = 'PIB (USD)'))
+        
+        fig
+        
+      }) # end renderPlotly
+    
+    
+    #Bar Plot
+    output$barPlot <- 
+      
+      renderPlotly({
+        
+        if(input$outlierbar) {
+          dfb <- dataset1_bar
+        }
+        else {
+          dfb <- dataset1_bar_out
+        }
+        
+        fig <- plot_ly(data = dfb, x = ~gini_disp, y = ~Cost.Per.Month...Basic....,
+                       type = 'bar', name = 'Basic', text = ~Country)
+        
+        fig <- fig %>% add_trace(y = ~basic_standard_diff, name = 'Standard')
+        fig <- fig %>% add_trace(y = ~standard_premium_diff, name = 'Premium')
+        fig <- fig %>% layout(yaxis = list(title = 'Custo Mensal dos Planos Basic, Standard e Premium (USD)', titlefont = list(size=10)),
+                              xaxis = list(title = 'Desigualdade Salarial (GINI)'),
+                              barmode = 'stack')
+        fig
+        
+      }) # end renderPlotly
+    
+    
+    # Country Plot
+    output$countryPlot <- 
+      
+      renderPlotly({
+        
+        country <- filter(countries, parents == input$Country)
+        country <- rbind(filter(countries, labels == input$Country), country)
+        
+        fig <- plot_ly(data = country, ids = ~id, labels = ~labels,
+                       parents = ~parents, values = ~n, type = 'treemap',
+                       branchvalues = 'total', pathbar = list(visible = TRUE))
+        fig
+      
+      }) # end renderPlotly
+    
+    
+    # Treemap Plot (não é chamado no grafico interativo)
+    output$treePlot <-
+      
+      renderPlotly({
+        
+        fig <- plot_ly(data = tree, ids = ~id, labels = ~labels,
+                       parents = ~parent, values = ~n, type = 'treemap',
+                       branchvalues = 'total', pathbar = list(visible = TRUE))
+        
+        fig
+        
+      }) # end renderPlotly
+    
+    
+    # Mapa
+    output$mapPlot <- 
+      
+      renderPlotly({
+        
+        if(input$outliermap) {
+          dfm <- dataset1
+        }
+        else {
+          dfm <- dataset1_scat_out
+        }
+        
+        l <- list(color = toRGB("grey"), width = 0.5)
+        
+        # https://en.wikipedia.org/wiki/List_of_map_projections
+        
+        g <- list(
+          showframe = FALSE,
+          showcoastlines = FALSE,
+          projection = list(type = 'Miller')
+        )
+        
+        fig <- plot_geo(dfm)
+        
+        fig <- fig %>% add_trace(z = ~get(input$select3),
+                                 color = ~get(input$select3),
+                                 colorscale = 'Purples',
+                                 text = ~Country,
+                                 locations = ~Alpha.3.code,
+                                 marker = list(line = l))
+        
+        fig <- fig %>% colorbar(title = 'Escala')
+        fig <- fig %>% layout(title = 'Mapa Global da Netflix em Q4-2021')
+        
+        fig
+        
+      }) # end renderPlotly
+    
+    
+    # Scatter Plot
+    
+    output$mapscatPlot <- 
+      
+      renderPlotly({
+        
+        if(input$outliermap){
+          dfms <- dataset1
+        }
+        else {
+          dfms <- dataset1_scat_out
+        }
+        
+        fig <- plot_ly(data = dfms, x = ~X..of.Subscribers.Q4.2021..Estimate., y = ~Q4.2021.Revenue....Estimate.,
+                       type = "scatter", mode = "markers", text = ~Country)
+        
+        fig <- fig %>% layout(yaxis = list(title = 'Faturamento da Netflix em Q4-2021'),
+                              xaxis = list(title = 'Assinantes da Netflix em Q4-2021'))
+        
+        fig
+        
+      })# end renderPlotly
+
+  } # end function
+
+
+# Executa o server
+
+shinyApp(ui, server)
+
+
+
+
+
+
+
+
+# Explicando o Country Plot
+
+# - É um treemap plot em que a área dos retângulos é proporcional à quantidade de observações em cada categoria. A função renderPlotly()
+#   do shiny é utilizada para gerar o gráfico dinamicamente com base nos inputs do usuário.
+
+# - A primeira parte do código filtra a tabela countries para obter somente as observações do país selecionado no input Country.
+#   A segunda parte cria o treemap com a função plot_ly(). Os argumentos data, ids, labels, parents e values são utilizados para
+#   especificar os dados e a hierarquia do treemap.
+
+# - O argumento type especifica que o gráfico deve ser do tipo treemap, e branchvalues especifica que os valores exibidos devem ser o
+#   valor total da categoria e não o valor absoluto de cada observação. O argumento pathbar é utilizado para adicionar barras de
+#   navegação para o usuário se deslocar na hierarquia do treemap.
                  
